@@ -37,6 +37,8 @@ INSTALLED_APPS = (
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'rest_framework',
+    'api',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -76,7 +78,8 @@ WSGI_APPLICATION = 'restapi.wsgi.application'
 
 
 import dj_database_url
-DATABASES['default'] =  dj_database_url.config()
+DATABASES = {}
+DATABASES['default'] =  dj_database_url.config(default="sqlite:///"+os.path.join(BASE_DIR, 'db.sqlite3'))
 
 
 #~ DATABASES = {
