@@ -32,7 +32,7 @@ def get_weather_data(city):
         d = ret.json()
 
         if d['cod'] != 200:
-            raise Http404()
+            return HttpResponseBadRequest()
         return d
     except Exception,e:
         raise Http404()
