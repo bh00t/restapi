@@ -21,4 +21,7 @@ from api import views
 urlpatterns = [
     url(r'^admin/', include(admin.site.urls)),
     url(r'^$',views.welcome),
+    url(r'^weather/$',views.weather),
+    url(r'^greetings/$',views.greetings),
+    url(r'^qa/$',views.query),
 ]
