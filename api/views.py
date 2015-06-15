@@ -94,8 +94,10 @@ def query(request):
         data = json.loads(str(ret.content))
         # data = ret.content
         q = data['queries'][0]['query']
+        if not q:
+            return JsonResponse({'answer':'Your majesty! Jon Snow knows nothing! So do I!'})
         payload = {'debug':'on',
-                   'timeout':'0',
+                   'timeout':'3000',
                    'query':q,
                    'default-graph-uri':'',
                    'format':'application/sparql-results+json',
@@ -103,7 +105,7 @@ def query(request):
         db_ret = requests.get("http://dbpedia.org/sparql",params=payload)
         if db_ret.status_code!=requests.codes.ok:
             return JsonResponse({'answer':'Your majesty! Jon Snow knows nothing! So do I!'})
-        print db_ret.content
+        # print db_ret.content
         data = json.loads(db_ret.content)
         var_name = data['head']['vars'][0]
         res = data['results']['bindings']
