@@ -67,7 +67,12 @@ def weather(request):
                 if ret:
                     condition = ret.group('condition')
                     city = ret.group('city')
-                    return HttpResponse(ret.group('city'))
+                    data = get_weather_data(city)
+                    # print data['weather'][0]['main']
+                    if data['weather'][0]['main']==condition:
+                        return JsonResponse({'answer':'Yes',})
+                    else:
+                        return JsonResponse({'answer':'No',})
                 else:
                     raise Http404()
             else:
