@@ -105,12 +105,12 @@ def query(request):
             return JsonResponse({'answer':'Your majesty! Jon Snow knows nothing! So do I!'})
         print db_ret.content
         data = json.loads(db_ret.content)
-
+        var_name = data['head']['vars'][0]
         res = data['results']['bindings']
-
-        for x in res:
-            if x['x1']['xml:lang'] == 'en' :
-                return JsonResponse({'answer':x['x1']['value']})
+        for var_name in data['head']['vars']:
+            for x in res:
+                if x[var_name]['xml:lang'] == 'en' :
+                    return JsonResponse({'answer':x[var_name]['value']})
 
         return JsonResponse({'answer':'Your majesty! Jon Snow knows nothing! So do I!'})
     else:
