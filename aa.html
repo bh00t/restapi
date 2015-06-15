@@ -1,0 +1,55 @@
+<html>
+<head>
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+</head>
+<body>
+	hii
+	
+	
+<script>
+
+$(document).ready(function(){
+	var sparqlQuery="";
+$.ajax({
+                url: "http://quepy.machinalis.com/engine/get_query",
+                data: {
+                    question: "Who is Tom Cruise?"
+                },
+                type: "GET",
+                dataType: "json",
+                success: function(data){
+                    sparqlQuery= data.queries[0].query;
+                    console.log(sparqlQuery)
+                },
+                error: function(data){
+                    console.log(data)
+                }
+});
+
+$.ajax({
+url: "http://dbpedia.org/sparql",
+            data: {
+                "debug": "on",
+                "timeout": "0",
+                "query": sparqlQuery,
+                "default-graph-uri": "",
+                "format": "application/sparql-results+json"
+            },
+            type: "GET",
+            dataType: "json",
+            success: function(data){
+                console.log(data);
+    //code for extracting output from the json
+            },
+            error: function(data){
+                console.log(data)
+            }
+});
+
+	});
+</script>
+</body>
+
+
+</html>
+

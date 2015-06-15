@@ -1,10 +1,10 @@
 import re
-from django.http import HttpResponse,JsonResponse,Http404
+from django.http import HttpResponse,JsonResponse,Http404,HttpResponseBadRequest
 from django.shortcuts import render
 import requests
 # Create your views here.
 from django.views.decorators.csrf import csrf_exempt
-
+import json
 
 def welcome(request):
     return HttpResponse("Welcome!!")
@@ -14,15 +14,15 @@ def welcome(request):
 def greetings(request):
     if request.GET:
         if not request.GET['q']:
-            raise Http404()
+            return HttpResponseBadRequest()
         else:
             s = request.GET['q']
             if s.startswith('Hi!') or s.startswith('Hello!') or s.startswith('Good morning!') or s.startswith('Good evening!') or s.startswith('Good night!') :
                 return JsonResponse({'answer':'Hello, Kitty! Whoever is watching this is a genius!!',})
             else:
-                raise Http404()
+                return HttpResponseBadRequest()
 
-    raise Http404()
+    return HttpResponseBadRequest()
 
 
 
@@ -37,11 +37,12 @@ def get_weather_data(city):
     except Exception,e:
         raise Http404()
 
+
 @csrf_exempt
 def weather(request):
     if request.GET:
-        if not request.GET['q']:
-            raise Http404()
+        if 'q' not in request.GET.keys():
+            return HttpResponseBadRequest()
         else:
             s = request.GET['q']
             if s.startswith('What is today\'s temperature in ') and s.endswith('?'):
@@ -52,7 +53,7 @@ def weather(request):
                     temp = '%d K' % (data['main']['temp'],)
                     return JsonResponse({'answer':temp})
                 else:
-                    raise Http404()
+                    return HttpResponseBadRequest()
             elif s.startswith('What is today\'s humidity in ') and s.endswith('?'):
                 ret = re.match(r'^What is today\'s humidity in (?P<city>.*)\?$',s)
                 if ret:
@@ -61,7 +62,7 @@ def weather(request):
                     humidity = data['main']['humidity']
                     return JsonResponse({'answer':humidity})
                 else:
-                    raise Http404()
+                    return HttpResponseBadRequest()
             elif 'weather' in s:
                 ret = re.match(r'^Is there (?P<condition>(Rain|Clouds|Clear)) weather today in (?P<city>.*)\?$',s)
                 if ret:
@@ -74,14 +75,43 @@ def weather(request):
                     else:
                         return JsonResponse({'answer':'No',})
                 else:
-                    raise Http404()
+                    return HttpResponseBadRequest()
             else:
-                raise Http404()
+                return HttpResponseBadRequest()
 
-    raise Http404()
+    return HttpResponseBadRequest()
 
 
 
 @csrf_exempt
 def query(request):
-    return HttpResponse("query")
+    if request.GET and 'question' in request.GET.keys():
+        quest = request.GET['question']
+        ret = requests.get("http://quepy.machinalis.com/engine/get_query",params={'question':quest})
+        if ret.status_code != requests.codes.ok:
+            return JsonResponse({'answer':'Your majesty! Jon Snow knows nothing! So do I!'})
+        # print ret.content
+        data = json.loads(str(ret.content))
+        # data = ret.content
+        q = data['queries'][0]['query']
+        payload = {'debug':'on',
+                   'timeout':'0',
+                   'query':q,
+                   'default-graph-uri':'',
+                   'format':'application/sparql-results+json',
+                   }
+        db_ret = requests.get("http://dbpedia.org/sparql",params=payload)
+        if db_ret.status_code!=requests.codes.ok:
+            return JsonResponse({'answer':'Your majesty! Jon Snow knows nothing! So do I!'})
+        print db_ret.content
+        data = json.loads(db_ret.content)
+
+        res = data['results']['bindings']
+
+        for x in res:
+            if x['x1']['xml:lang'] == 'en' :
+                return JsonResponse({'answer':x['x1']['value']})
+
+        return JsonResponse({'answer':'Your majesty! Jon Snow knows nothing! So do I!'})
+    else:
+        return HttpResponseBadRequest()
